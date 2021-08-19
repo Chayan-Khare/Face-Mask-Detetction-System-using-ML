@@ -4,6 +4,9 @@ import numpy as np
 import tkinter
 from tkinter import messagebox
 import smtplib
+import imghdr
+from email.message import EmailMessage
+import os
 
 root = tkinter.Tk()
 root.withdraw()
@@ -39,15 +42,30 @@ while (True):
         cv2.rectangle(img, (x, y - 40), (x + w, y), rect_color[label], -1)
         cv2.putText(img, text_dict[label], (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
         if (label == 1):
+           cv2.imwrite("NewPicture.jpg", img)
             messagebox.showwarning("Warning", "Visitor Policy Violated")
 
-            message = 'Subject : {}\n\n{}'.format(Subject, Text)
+            Sender_Email = "Enter your email"
+            Reciever_Email = "Enter Sender Email"
+            Sender_Password = "Enter Your Password"
+            Password = "Enter Your Password"
+            newMessage = EmailMessage()
+            newMessage['Subject'] = "Warning Visitor Policy Violated"
+            newMessage['From'] = Sender_Email
+            newMessage['To'] = Reciever_Email
+            newMessage.set_content('Visiter without face mask detected.')
+            with open('NewPicture.jpg', 'rb') as f:
+                image_data = f.read()
+                image_type = imghdr.what(f.name)
+                image_name = f.name
+            newMessage.add_attachment(image_data, maintype='image', subtype=image_type, filename=image_name)
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
 
-            mail = smtplib.SMTP('smtp.gmail.com', 587)
-            mail.ehlo()
-            mail.starttls()
-            mail.login('email', 'password')
-            mail.sendmail('sender email', 'receiver email', message)
+                smtp.login(Sender_Email, Password)
+                smtp.send_message(newMessage)
+
+
+          
 
         else:
             pass
@@ -55,7 +73,15 @@ while (True):
     cv2.imshow('Live Feed', img)
     key = cv2.waitKey(1)
 
-    if (key == 27):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+folder_path = (r'C:\Filepath')
+#using listdir() method to list the files of the folder
+test = os.listdir(folder_path)
+#taking a loop to remove all the images
+#using ".png" extension to remove only png images
+#using os.remove() method to remove the files
+for images in test:
+    if images.endswith(".jpg"):
+        os.remove(os.path.join(folder_path, images))
 cv2.destroyAllWindows()
-source.release()
